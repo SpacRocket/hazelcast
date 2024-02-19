@@ -44,6 +44,7 @@ import java.security.AccessControlException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static com.hazelcast.sql.SqlExpectedResultType.ANY;
 import static com.hazelcast.sql.SqlExpectedResultType.ROWS;
@@ -293,17 +294,16 @@ public class SqlServiceImpl implements InternalSqlService {
         List<List<String>> searchPaths = prepareSearchPaths(schema);
         PlanKey planKey = new PlanKey(searchPaths, sql);
         SqlPlan plan = planCache.get(planKey);
-        SqlPlan planOpt = planCache.get(planKey);
         if (plan == null) {
-            SqlCatalog catalog = new SqlCatalog(optimizer.tableResolvers());
-            SqlCatalog catalogOpt = new SqlCatalog(optimizer.tableResolvers(), QueryParser.getTablesFromSql(sql));
+
+            Set<String> elements = QueryParser.getTablesFromSql(sql);
+            for (Object obj : args) {
+                elements.add(obj.toString());
+            }
+
+            SqlCatalog catalog = new SqlCatalog(optimizer.tableResolvers(), elements);
 
             plan = optimizer.prepare(new OptimizationTask(sql, args, searchPaths, catalog, ssc));
-            planOpt = optimizer.prepare(new OptimizationTask(sql, args, searchPaths, catalogOpt, ssc));
-
-            if (!plan.equals(planOpt)) {
-               throw new RuntimeException("Error: Plan mismatch");
-            }
 
             if (plan.isCacheable()) {
                 planCache.put(planKey, plan);
