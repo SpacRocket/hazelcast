@@ -297,8 +297,10 @@ public class SqlServiceImpl implements InternalSqlService {
         if (plan == null) {
 
             Set<String> elements = QueryParser.getTablesFromSql(sql);
-            for (Object obj : args) {
-                elements.add(obj.toString());
+            if (args != null && !args.isEmpty()) {
+                for (Object obj : args) {
+                    elements.add(obj.toString());
+                }
             }
 
             SqlCatalog catalog = new SqlCatalog(optimizer.tableResolvers(), elements);
