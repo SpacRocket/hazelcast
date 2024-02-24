@@ -67,7 +67,7 @@ public class QueryParser {
 
         @Override
         public Void visit(SqlIdentifier id) {
-            tableNames.add(id.toString());
+            tableNames.addAll(id.names);
             return super.visit(id);
         }
 
