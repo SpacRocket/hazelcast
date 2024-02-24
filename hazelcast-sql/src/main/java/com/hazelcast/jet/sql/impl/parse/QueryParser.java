@@ -63,6 +63,7 @@ public class QueryParser {
     //TODO: Is there any other way to not use visitor here?
     private static class TableNamesVisitor extends SqlBasicVisitor<Void> {
         private final Set<String> tableNames = new HashSet<>();
+        //TODO: Check if all of them are required:
 
         @Override
         public Void visit(SqlIdentifier id) {

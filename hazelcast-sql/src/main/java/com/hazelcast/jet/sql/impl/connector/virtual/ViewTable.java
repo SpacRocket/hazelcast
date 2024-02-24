@@ -80,6 +80,9 @@ public class ViewTable extends Table {
         assert viewRel != null;
         return viewRel;
     }
+    public String getViewSQL() {
+        return viewQuery;
+    }
 
     @Override
     public boolean isStreaming() {

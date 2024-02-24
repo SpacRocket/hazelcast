@@ -16,8 +16,11 @@
 
 package com.hazelcast.sql.impl.schema;
 
+import com.hazelcast.jet.sql.impl.connector.virtual.ViewTable;
+import com.hazelcast.jet.sql.impl.parse.QueryParser;
 import com.hazelcast.sql.impl.QueryUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -89,6 +92,18 @@ public class SqlCatalog {
 
         for (TableResolver tableResolver : tableResolvers) {
             Collection<Table> tables = tableResolver.getTables(elements);
+            Collection<Table> tablesFromView = new ArrayList<>();
+
+            for (Table table : tables) {
+                if (table instanceof ViewTable) {
+                    String sql = ((ViewTable) table).getViewSQL();
+                    Set<String> viewElements = QueryParser.getTablesFromSql(sql);
+                    tablesFromView.addAll(tableResolver.getTables(viewElements));
+                }
+            }
+
+            tables.addAll(tablesFromView);
+
 
             for (List<String> searchPath : tableResolver.getDefaultSearchPaths()) {
                 assert searchPath.size() == 2 && searchPath.get(0).equals(QueryUtils.CATALOG) : searchPath;
