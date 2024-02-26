@@ -30,6 +30,7 @@ import com.hazelcast.jet.sql.impl.connector.infoschema.UDTAttributesTable;
 import com.hazelcast.jet.sql.impl.connector.infoschema.UserDefinedTypesTable;
 import com.hazelcast.jet.sql.impl.connector.infoschema.ViewsTable;
 import com.hazelcast.jet.sql.impl.connector.virtual.ViewTable;
+import com.hazelcast.jet.sql.impl.parse.QueryParser;
 import com.hazelcast.spi.impl.NodeEngine;
 import com.hazelcast.sql.impl.QueryException;
 import com.hazelcast.sql.impl.schema.BadTable;
@@ -335,6 +336,10 @@ public class TableResolverImpl implements TableResolver {
                 tables.add(toTable((Mapping) o));
                 mappings.add((Mapping) o);
             } else if (o instanceof View) {
+                ViewTable tableView = ((ViewTable) toTable((View) o));
+                String sql = tableView.getViewSQL();
+                Set<String> viewElements = QueryParser.getTablesFromSql(sql);
+                tables.addAll(getTables(viewElements));
                 tables.add(toTable((View) o));
                 views.add((View) o);
             } else if (o instanceof Type) {
@@ -348,6 +353,7 @@ public class TableResolverImpl implements TableResolver {
             }
         }
 
+        //On the inner it shouldn't be added
         ADDITIONAL_TABLE_PRODUCERS.forEach(producer ->
                 tables.add(producer.apply(mappings, views, types, connectorCache, nodeEngine)));
 
