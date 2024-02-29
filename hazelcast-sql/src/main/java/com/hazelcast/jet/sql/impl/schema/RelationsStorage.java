@@ -18,10 +18,12 @@ package com.hazelcast.jet.sql.impl.schema;
 
 import com.hazelcast.spi.impl.NodeEngine;
 import com.hazelcast.sql.impl.schema.Mapping;
+import com.hazelcast.sql.impl.schema.SqlCatalogObject;
 import com.hazelcast.sql.impl.schema.type.Type;
 import com.hazelcast.sql.impl.schema.view.View;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class RelationsStorage extends AbstractSchemaStorage {
@@ -109,4 +111,21 @@ public class RelationsStorage extends AbstractSchemaStorage {
                 .map(t -> ((Type) t).name())
                 .collect(Collectors.toList());
     }
+
+    Collection<Object> allObjects(Set<String> elements) {
+        return storage().values()
+                .stream()
+                .filter(obj -> {
+                    String name = ((SqlCatalogObject) obj).name();
+                    if (obj instanceof Mapping) {
+                        String dataConnection = ((Mapping) obj).dataConnection();
+                        if (elements.contains(dataConnection)) {
+                            return true;
+                        }
+                    }
+                    return elements.contains(name);
+                })
+                .collect(Collectors.toList());
+    }
+
 }

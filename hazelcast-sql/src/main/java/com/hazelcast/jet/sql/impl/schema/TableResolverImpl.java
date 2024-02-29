@@ -37,6 +37,7 @@ import com.hazelcast.sql.impl.schema.BadTable;
 import com.hazelcast.sql.impl.schema.ConstantTableStatistics;
 import com.hazelcast.sql.impl.schema.Mapping;
 import com.hazelcast.sql.impl.schema.MappingField;
+import com.hazelcast.sql.impl.schema.SqlCatalogObject;
 import com.hazelcast.sql.impl.schema.Table;
 import com.hazelcast.sql.impl.schema.TableResolver;
 import com.hazelcast.sql.impl.schema.dataconnection.DataConnectionCatalogEntry;
@@ -319,7 +320,13 @@ public class TableResolverImpl implements TableResolver {
     @Nonnull
     public List<Table> getTables(Set<String> elements) {
         //TODO: Seems to violate DRY principle.
-        Collection<Object> objects = relationsStorage.allObjects(elements);
+        Collection<Object> objects;
+        if (elements != null && elements.contains("information_schema")) {
+            objects = relationsStorage.allObjects();
+        } else {
+            objects = relationsStorage.allObjects(elements);
+        }
+
         List<Table> tables = new ArrayList<>(objects.size() + ADDITIONAL_TABLE_PRODUCERS.size());
 
         int lastMappingsSize = this.lastMappingsSize;
